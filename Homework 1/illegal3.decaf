@@ -1,0 +1,42 @@
+// This is a bad program which illustrates some of the things that cannot be done in decaf
+
+interface Readable() {
+    string read();
+}
+
+class Book implements Readable() {
+    // Book must implement read() to correctly implement the Readable interface
+    string text;
+    string getText() { return text; }
+}
+
+class Novel extends Book {
+    // Novel must also implement read() because it inherits the interface from Book
+}
+
+void main() {
+    int x;
+    x = null; // only named type can be null
+    if (1) {
+        // if must take a boolean, not an integer
+        Print("Hello world.");
+    }
+    x = 6;
+    double y;
+    y = 3.0;
+    y = x / y; // x and y must be of the same type to perform artithmetic operations with them (unlike java)
+    Book b;
+    b = null;
+    if (b != null && b.getText() == "hello world") {
+        b = null;
+    } // decaf has no short-circuiting, so b.getText would be called on b, which is null
+    // the equivalence test would also always fail as these strings are being compared by reference, unlike C++, but like Java
+
+    int z;
+    Print(z); // decaf does not check for the use of unitialized variables, undefined behavior results
+}
+
+void myFunction() {
+    return true;
+    int x; // decaf does not detect unreachable code
+}

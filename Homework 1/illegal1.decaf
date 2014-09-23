@@ -1,0 +1,53 @@
+// This is a bad program which illustrates some of the things that cannot be done in decaf
+
+// main by definition takes no arguments in Decaf and has no return type
+int main(string args, int argc) {
+    int x;
+    x = 0;
+    // if statements must have curly braces, even for one line statements
+    if (true)
+        Print("Hello world " + x);
+    // decaf cannot concatenate strings and integers in this way
+    if (x < 5) {
+        int x;
+        x = 6;
+        // x here shadows the x from the outer scope, so this block has no effect
+    }
+
+    function(); // this is acceptable without a forward declaration, unlike in C or C++, because decaf uses a multi-pass compiler
+    
+    void[] void_array = NewArray(0, void);
+    // arrays cannot be typed as void, and they must have a size > 0
+
+    int[] array1 = NewArray(3, int);
+    array[1.0] = 5;
+    // array indices must be integers (not doubles)
+    array[array1.length()] = 2;
+    // out of bounds
+
+    array1[0] = 1;
+    int[] array2 = NewArray(3, int);
+    array2 = array1;
+    array1[0] = 2;
+    // here array2[0] is also set to 2 because the assignment copied only the reference (shallow copy)
+
+    string s1;
+    s1 = "abc";    
+    string s2;
+    s2 = s1;
+    s1 = "def";
+    // string copy is also shallow, s2 now contains "def"
+
+
+
+    // return type declared but nothing is returned
+}
+
+void function() { 
+    void function2(int x, int x) {
+        // nested function declarations are not allowed
+        // parameters cannot use the same name
+        return 5;
+        // void functions cannot return values
+    }
+}

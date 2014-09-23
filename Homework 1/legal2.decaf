@@ -1,0 +1,43 @@
+// This program creates a vine (Grape array) with one seedless red Grape object and eats it.
+
+interface Edible {
+    void eat();
+}
+
+class Fruit implements Edible {
+    double weight;
+
+    Fruit() {
+        weight = 1.0;
+    }
+
+    double getWeight() { return weight; }
+    double setWeight(double w) { weight = w; }
+    void eat() {
+        // 'this.' is optional like in Java
+        this.weight = 0;
+    }
+}
+
+// inherits the 'edible' interface from Fruit
+class Grape extends Fruit {
+    string color;
+    bool seedless;
+    Grape() {
+        color = "Red";
+        seedless = false;
+    }
+
+    void setSeedless(bool s) { seedless = s; }
+}
+
+void main() {
+    Grape[] vine = NewArray(1, Grape);
+    int length;
+    length = vine.length();
+    grape1 = New(Grape);
+    grape1.setWeight(2.3);
+    grape1.setSeedless(true);
+    grape1.eat();
+    vine[0] = grape1;
+}

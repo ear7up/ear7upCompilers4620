@@ -1,0 +1,28 @@
+// This is a bad program which illustrates some of the things that cannot be done in decaf
+
+interface Living { }
+class Mammalia { }
+class Rodentia extends Mammalia { string genus; }
+
+// decaf does not use keywords like public, classes are assumed to be public
+// decaf only supports single inheritance
+public class Hamster extends Rodentia, Mammalia implements Living{
+    string genus; // cannot override inherited variables
+    // all instance variables are private
+    public string name;
+    int age;
+    string age; // cannot have two fields of the same name
+    int getAge() { return age; }
+    string getAge() { return age + 1; } // cannot have two methods of the same name, no overloading
+}
+
+class Hamster {
+
+} // class names must be unique
+
+void main(){
+    Hamster ham = New(Animal);
+    // New cannot take an interface as an argument in decaf
+    ham.age = 7;
+    // age is a private variable, it must be accessed by a 'getter/accessor' method
+}

@@ -1,0 +1,21 @@
+// This program tests collatz's conjecture on all positive integers
+// It has no output on a 64-bit machine (collatz has been tested on integers far greater than 2^64) 
+// but in the future it may print a message if collatz was wrong.
+
+bool collatz(int n) {
+    if (n == 1) { return true; }
+    if (n % 2) { return collatz(3*n + 1); }
+    return collatz(n/2);
+}
+
+void main() {
+    int n;
+    n = 1;
+    while (true) {
+        if (! collatz(n) || n < 0) { break; }
+        n = n + 1;
+    }
+    if (n > 0) { print("The collatz conjecture is disproved!"); }
+}
+
+
