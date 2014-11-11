@@ -1,0 +1,8 @@
+interface A {
+    void fn(int x, bool y);
+}
+
+class B implements A {
+    void fn(int x, bool y) {
+    }
+}

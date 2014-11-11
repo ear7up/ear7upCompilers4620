@@ -1,0 +1,8 @@
+class A {
+    int b;
+    void fnA(A a) { this.b = 4; }
+}
+
+int main() {
+    this.b = 5;
+}
