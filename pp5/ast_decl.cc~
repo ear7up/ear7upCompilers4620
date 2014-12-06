@@ -1,0 +1,144 @@
+/* File: ast_decl.cc
+ * -----------------
+ * Implementation of Decl node classes.
+ */
+#include "ast_decl.h"
+#include "ast_type.h"
+#include "ast_stmt.h"
+#include "errors.h"
+    
+#include <iostream>
+using namespace std;    
+         
+Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
+    Assert(n != NULL);
+    (id=n)->SetParent(this); 
+}
+
+
+VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
+    Assert(n != NULL && t != NULL);
+    (type=t)->SetParent(this);
+}
+  
+
+ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<Decl*> *m) : Decl(n) {
+    // extends can be NULL, impl & mem may be empty lists but cannot be NULL
+    Assert(n != NULL && imp != NULL && m != NULL);     
+    extends = ex;
+    if (extends) extends->SetParent(this);
+    (implements=imp)->SetParentAll(this);
+    (members=m)->SetParentAll(this);
+}
+
+
+InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
+    Assert(n != NULL && m != NULL);
+    (members=m)->SetParentAll(this);
+}
+
+	
+FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
+    Assert(n != NULL && r!= NULL && d != NULL);
+    (returnType=r)->SetParent(this);
+    (formals=d)->SetParentAll(this);
+    body = NULL;
+}
+
+void FnDecl::SetFunctionBody(Stmt *b) { 
+    (body=b)->SetParent(this);
+}
+
+// This is not done very cleanly. I should sit down and sort this out. Right now
+// I was using the copy-in strategy from the old compiler, but I think the link to
+// parent may be the better way now.
+Scope *ClassDecl::PrepareScope()
+{
+    if (nodeScope) return nodeScope;
+    nodeScope = new Scope();
+    if (extends) {
+        ClassDecl *ext = dynamic_cast<ClassDecl*>(parent->FindDecl(extends->GetId()));
+        if (ext) nodeScope->CopyFromScope(ext->PrepareScope(), this);
+    }
+    imp_decls = new List<InterfaceDecl*>;
+    for (int i = 0; i < implements->NumElements(); i++) {
+        NamedType *in = implements->Nth(i);
+        InterfaceDecl *id = dynamic_cast<InterfaceDecl*>(in->FindDecl(in->GetId()));
+        if (id) {
+            nodeScope->CopyFromScope(id->PrepareScope(), NULL);
+            imp_decls->Append(id);
+        }
+    }
+    members->DeclareAll(nodeScope);
+    return nodeScope;
+}
+
+Scope *InterfaceDecl::PrepareScope() {
+    if (nodeScope) return nodeScope;
+    nodeScope = new Scope();
+    members->DeclareAll(nodeScope);
+    return nodeScope;
+}
+
+bool FnDecl::IsMethodDecl()
+{ 
+    return dynamic_cast<ClassDecl*>(parent) || dynamic_cast<InterfaceDecl*>(parent); 
+}
+
+bool FnDecl::MatchesPrototype(FnDecl *other) {
+    return true;
+}
+
+bool FnDecl::ConflictsWithPrevious(Decl *prev) {
+    // special case error for method override
+    if (IsMethodDecl() && prev->IsMethodDecl() && parent != prev->GetParent()) {
+        if (!MatchesPrototype(dynamic_cast<FnDecl*>(prev))) {
+            ReportError::OverrideMismatch(this);
+        return true;
+        }
+        return false;
+    }
+    ReportError::DeclConflict(this, prev);  
+    return true;
+}
+
+void FnDecl::Emit(Scope* parentScope) {
+    nodeScope = new Scope();
+    //(dynamic_cast<StmtBlock*>(body))->Declare(nodeScope);
+    CodeGenerator* codegen = CodeGenerator::getInstance();
+    // setup stack pointer for locals
+    codegen->localOffset = codegen->OffsetToFirstLocal;
+    // set offset to parent class if it exists
+    // GenLoadLabel
+    string function_name = string(GetName());
+    if (function_name == "main") {
+        codegen->GenLabel(function_name.c_str());
+        // get the program (node with no parent)
+        Node* parent = GetParent();
+        while (parent->GetParent()) parent = parent->GetParent();
+        parent->hasMain = true;
+    }
+    else codegen->GenLabel(("_" + function_name).c_str());
+    // else check if it is a class method
+    // GenBeginFunc
+    BeginFunc *begin_function = codegen->GenBeginFunc();
+    if (formals) {
+        codegen->paramOffset = codegen->OffsetToFirstParam;
+        for (int n = 0; n < formals->NumElements(); n++)
+            formals->Nth(n)->Emit(nodeScope);
+    }
+    if (body) body->Emit(nodeScope);
+
+    // backpatching based on size of variables used in function
+    begin_function->SetFrameSize(-(codegen->localOffset - codegen->OffsetToFirstLocal));
+    // GenEndFunc
+    codegen->GenEndFunc();
+}
+
+void VarDecl::Emit(Scope* parentScope) {
+    nodeScope = parentScope;
+    memloc = CodeGenerator::getInstance()->GenTempVar();
+}
+
+
+

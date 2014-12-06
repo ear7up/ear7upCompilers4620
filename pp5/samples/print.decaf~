@@ -1,0 +1,6 @@
+int main() {
+    Print("Hello World!\n"); // print string
+    Print(6); // print int
+    Print(5 + 3, "\n"); // print int expression and string
+    Print(5 * 3, "\n", true); // print another int expression and string
+}

@@ -1,0 +1,6 @@
+int main() {
+    int x;
+    x = 5;
+    Print(x, "\n");
+    // solution says "unrecognized TAC operator '=', assert fails in BinaryOp, but x = 5 is an Assign, not a BinaryOp?
+}

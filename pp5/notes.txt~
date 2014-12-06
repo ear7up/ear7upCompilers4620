@@ -1,0 +1,1 @@
+segfault on t2.decaf, array access nul this when accessing element type
